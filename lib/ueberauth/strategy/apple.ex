@@ -3,7 +3,7 @@ defmodule Ueberauth.Strategy.Apple do
   Google Strategy for Überauth.
   """
 
-  use Ueberauth.Strategy, uid_field: :uid, default_scope: "name email"
+  use Ueberauth.Strategy, uid_field: :uid, default_scope: "name email", ignores_csrf_attack: true
 
   alias Ueberauth.Auth.Info
   alias Ueberauth.Auth.Credentials
@@ -16,13 +16,12 @@ defmodule Ueberauth.Strategy.Apple do
     scopes = conn.params["scope"] || option(conn, :default_scope)
 
     params =
-      [scope: scopes]
+      [scope: scopes, response_mode: "form_post"]
       |> with_optional(:prompt, conn)
       |> with_optional(:access_type, conn)
       |> with_param(:access_type, conn)
       |> with_param(:prompt, conn)
-      |> with_param(:response_mode, conn)
-      |> with_param(:state, conn)
+      |> with_state_param(conn)
 
     opts = oauth_client_options_from_conn(conn)
     redirect!(conn, Ueberauth.Strategy.Apple.OAuth.authorize_url!(params, opts))
